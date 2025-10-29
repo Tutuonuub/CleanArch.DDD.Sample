@@ -1,0 +1,17 @@
+{
+  "name": "Clean Architecture DDD - Codespace",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [1433, 5000, 5001],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.vscode-dotnet-runtime",
+        "ms-mssql.mssql"
+      ]
+    }
+  },
+  "postCreateCommand": "dotnet restore"
+}
