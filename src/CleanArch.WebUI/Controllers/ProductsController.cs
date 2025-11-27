@@ -73,5 +73,14 @@ namespace CleanArch.WebUI.Controllers
             await _service.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Search(string q)
+        {
+            var results = await _service.SearchAsync(q ?? string.Empty);
+            // Retorna JSON simples com dados essenciais
+            return Json(results);
+        }
+
     }
 }

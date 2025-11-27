@@ -3,80 +3,56 @@ using CleanArch.Application.ViewModels;
 using CleanArch.Domain.Entities;
 using CleanArch.Domain.Interfaces;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Mapster;
+using Microsoft.EntityFrameworkCore;
 
 namespace CleanArch.Application.Services
 {
     public class ProductService : IProductService
     {
         private readonly IProductRepository _repository;
+        private readonly ICategoryRepository _categoryRepository;
 
-        public ProductService(IProductRepository repository)
+        public ProductService(IProductRepository repository, ICategoryRepository categoryRepository)
         {
             _repository = repository;
-        }
-
-        public async Task<ProductViewModel?> GetByIdAsync(int id)
-        {
-            var entity = await _repository.GetByIdAsync(id);
-            if (entity == null) return null;
-            return MapToVm(entity);
+            _categoryRepository = categoryRepository;
         }
 
         public async Task<IEnumerable<ProductViewModel>> GetAllAsync()
         {
-            var list = await _repository.GetAllAsync();
-            return list.Select(MapToVm);
+            var products = await _repository.GetAllWithCategoryAsync();
+            return products.Adapt<IEnumerable<ProductViewModel>>();
         }
 
-        public async Task<ProductViewModel> CreateAsync(ProductViewModel vm)
+        public async Task<IEnumerable<ProductViewModel>> SearchAsync(string query)
         {
-            var entity = new Product
-            {
-                Name = vm.Name,
-                Description = vm.Description,
-                Price = vm.Price
-            };
+            var products = await _repository.SearchWithCategoryAsync(query);
+            return products.Adapt<IEnumerable<ProductViewModel>>();
+        }
 
+        public async Task<ProductViewModel?> GetByIdAsync(int id)
+        {
+            var p = await _repository.GetByIdWithCategoryAsync(id);
+            return p?.Adapt<ProductViewModel>();
+        }
+
+        public async Task AddAsync(ProductViewModel vm)
+        {
+            var entity = vm.Adapt<Product>();
             await _repository.AddAsync(entity);
-            await _repository.SaveChangesAsync();
-
-            vm.Id = entity.Id;
-            return vm;
         }
 
         public async Task UpdateAsync(ProductViewModel vm)
         {
-            var entity = await _repository.GetByIdAsync(vm.Id);
-            if (entity == null) throw new KeyNotFoundException("Produto não encontrado");
-
-            entity.Name = vm.Name;
-            entity.Description = vm.Description;
-            entity.Price = vm.Price;
-
-            _repository.Update(entity);
-            await _repository.SaveChangesAsync();
+            var entity = vm.Adapt<Product>();
+            await _repository.UpdateAsync(entity);
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
-            if (entity == null) throw new KeyNotFoundException("Produto não encontrado");
-
-            _repository.Remove(entity);
-            await _repository.SaveChangesAsync();
-        }
-
-        private static ProductViewModel MapToVm(Product p)
-        {
-            return new ProductViewModel
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price
-            };
+            await _repository.DeleteAsync(id);
         }
     }
 }

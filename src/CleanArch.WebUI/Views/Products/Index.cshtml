@@ -1,35 +1,61 @@
 @model IEnumerable<CleanArch.Application.ViewModels.ProductViewModel>
 
-@{ ViewData["Title"] = "Produtos"; }
+@{
+    ViewData["Title"] = "Produtos";
+}
 
 <h1>Produtos</h1>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Novo produto</a>
-</p>
+<input id="searchBox" placeholder="Buscar produtos..." />
+<button id="btnSearch">Buscar</button>
 
-<table class="table table-striped">
+<table id="productsTable" class="table">
     <thead>
-        <tr>
-            <th>Id</th>
-            <th>Nome</th>
-            <th>Preço</th>
-            <th></th>
-        </tr>
+        <tr><th>Nome</th><th>Categoria</th><th>Preço</th><th>Ações</th></tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Id</td>
-                <td>@item.Name</td>
-                <td>@item.Price.ToString("C")</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |
-                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Remover</a>
-                </td>
-            </tr>
-        }
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Name</td>
+            <td>@item.CategoryName</td>
+            <td>@item.Price</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Excluir</a>
+            </td>
+        </tr>
+    }
     </tbody>
 </table>
+
+@section Scripts {
+<script>
+    async function doSearch(query) {
+        const url = '@Url.Action("Search", "Products")' + '?q=' + encodeURIComponent(query || '');
+        const res = await fetch(url);
+        const data = await res.json();
+        const tbody = document.querySelector('#productsTable tbody');
+        tbody.innerHTML = '';
+        data.forEach(p => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${p.name}</td><td>${p.categoryName ?? ''}</td><td>${p.price}</td>
+                            <td><a href="/Products/Edit/${p.id}">Editar</a> | <a href="/Products/Details/${p.id}">Detalhes</a> | <a href="/Products/Delete/${p.id}">Excluir</a></td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.getElementById('btnSearch').addEventListener('click', () => {
+        const q = document.getElementById('searchBox').value;
+        doSearch(q);
+    });
+
+    // opção: busca ao digitar (debounce simples)
+    let timer;
+    document.getElementById('searchBox').addEventListener('input', (e) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => doSearch(e.target.value), 350);
+    });
+</script>
+}

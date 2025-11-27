@@ -18,5 +18,9 @@ namespace CleanArch.Domain.Entities
         public decimal Price { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // FK para Category (1:N)
+        public int CategoryId { get; set; }
+        public Category? Category { get; set; }
     }
 }
