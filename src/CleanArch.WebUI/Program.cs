@@ -3,6 +3,7 @@ using CleanArch.Application.Services;
 using CleanArch.Infrastructure.Data;
 using CleanArch.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using CleanArch.Application.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,3 +37,10 @@ app.MapControllerRoute(
     pattern: "{controller=Products}/{action=Index}/{id?}");
 
 app.Run();
+
+MapsterConfig.Configure();
+
+// DI
+builder.Services.AddScoped<CleanArch.Domain.Interfaces.IProductRepository, CleanArch.Infrastructure.Repositories.ProductRepository>();
+builder.Services.AddScoped<CleanArch.Domain.Interfaces.ICategoryRepository, CleanArch.Infrastructure.Repositories.CategoryRepository>();
+builder.Services.AddScoped<IProductService, CleanArch.Application.Services.ProductService>();
